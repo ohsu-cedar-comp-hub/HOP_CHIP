@@ -11,7 +11,7 @@ if conda env list | grep -q "$ENV_NAME"; then
 else
     echo "Environment '$ENV_NAME' does not exist. Creating and initializing..."
     # Create the environment from the YAML file
-    conda env create -f slurm_environment.yml
+    conda env create -f HOP_env.yaml
 fi
 source activate base
 conda init zsh

@@ -1,5 +1,6 @@
 
 import os  
+import datetime
 
 bam_folder = config["bams"]
 result_folder = config["results"]
@@ -145,7 +146,7 @@ rule final_filt:
     input: 
         all_merged = os.path.join(master_folder, "merged_final.csv") 
     output: 
-        filt_merged = os.path.join(master_folder, "merged_filt_nonsyn_" + str(config["min_vaf"] * 100) + "to" + str(config["max_vaf"] * 100) + "percent_" + str(config["min_supp_reads"]) + "supp_BQ" + str(config["minBQ"]))
+        filt_merged = os.path.join(master_folder, datetime.today().strftime('%y%m%d') + "_merged_filt_nonsyn_" + str(config["min_vaf"] * 100) + "to" + str(config["max_vaf"] * 100) + "percent_" + str(config["min_supp_reads"]) + "supp_BQ" + str(config["minBQ"]))
     shell: 
         """
         sed 's/\t\t/\t/g' {input.all_merged} > rm_extra_tabs.csv

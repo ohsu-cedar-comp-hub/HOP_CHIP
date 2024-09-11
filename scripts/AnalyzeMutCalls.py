@@ -254,7 +254,7 @@ def main():
                                         --infile, --metadata, --calls, --dbsnp and --plt
                                         are required. Any that you don't fill in will be filled in by default with config file. 
                                         If you have an annotated file already, 
-                                        --annot and --plt are required. 
+                                        --annot, --dict and --plt are required. 
                                                               
                                     '''))
     
@@ -263,11 +263,11 @@ def main():
     parser.add_argument("--dbsnp", "-d", help = "Known sites in DBSNP")
     parser.add_argument("--annot", "-a", help = "Annotated file")
     parser.add_argument("--plt", "-p", help = "Directory where plots go")
-    parser.add_argument("--ver", "-v", help = "Can specify version if multiple runs")
-    parser.add_argument("--minvaf", help = "Minimum variant allele frequency")
-    parser.add_argument("--maxvaf", help = "Maximum variant allele frequency")
-    parser.add_argument("--mincount", help = "Minimum read count")
-    parser.add_argument("--config", "-c", help="Path to JSON configuration file", default = '/home/groups/CEDAR/chaoe/HOP_test/configpy.json')
+    parser.add_argument("--ver", "-v", help = "OPTIONAL Can specify version if multiple runs")
+    parser.add_argument("--minvaf", help = "OPTIONAL Minimum variant allele frequency")
+    parser.add_argument("--maxvaf", help = "OPTIONAL Maximum variant allele frequency")
+    parser.add_argument("--mincount", help = "OPTIONAL Minimum read count")
+    parser.add_argument("--config", "-c", help="OPTIONAL Path to JSON configuration file", default = '/home/groups/CEDAR/chaoe/HOP_test/config/config_annot.json')
     parser.add_argument("--calls",
                         metavar="KEY=VALUE",
                         nargs='+',
@@ -282,7 +282,7 @@ def main():
             if not getattr(o, key): 
                 setattr(o, key, value)
 
-         print("Pulling default parameters from", o.config)
+        print("Pulling default parameters from", o.config)
          
         if o.annot: 
             setattr(o, 'infile', None)   
@@ -324,6 +324,7 @@ def main():
 
         # annotate also if appears on known mutant lists
         known_calls = dict(map(lambda s: s.split('='), o.calls))
+
         mt_dict = {k: reformat(v) for k, v in known_calls.items()} 
 
         matches = []
