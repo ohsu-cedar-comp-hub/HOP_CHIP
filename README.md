@@ -46,7 +46,7 @@ sbatch AnalyzeBams.sh config/config_bams.json
 All output files generated for each input will be located in the results folder indicated by config_bams.json. 
 
 Resulting final dataframe will be located in the master directory with the name following the format: 
-{Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ} 
+"{Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ}"
 
 ### Part 2: Annotating Counts and Analyzing Calls 
 #### Summary
@@ -55,7 +55,7 @@ This script will take as input the resulting dataframe from Part 1 and generate 
 The annotated dataframe will be used to create multiple visualizations specifically for calls that match the provided known calls. 
 
 Files Involved: 
-* {Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ} from Part 1
+* {Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ} (from Part 1)
 * scripts/AnalyzeMutCalls.py 
 * config/config_annot.json 
 
@@ -147,3 +147,10 @@ python -u ConvertCalls.py -i testcalls.freq.annovar_file -o /home/groups/CEDAR/c
 ```
 
 Resulting output is a *_reformatted.txt that will be in your specified output directory. 
+
+## Additional Notes 
+When using multiple list of calls, choose names that start with a different letter. The created annotation dataframe saves the first letter of the name if there is a match, so this will prevent any confusion. 
+
+To run AnalyzeBams.sh, it would be better to also have your own version of annovar tools and human genome fasta file from Ensembl. The config_bams.json file points to mine by default. 
+
+Any questions? Please email me (chaoe@ohsu.edu)
