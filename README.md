@@ -1,6 +1,6 @@
-# Analyzing HOP data W/ Focus on ChIP Calls 
+# Analyzing HOP data W/ Focus on CHIP Calls 
 
-Given sequencing data from HOP, the user can identify ChIP calls, compare with known calls, perform various annotations and create a variety of companion visualizations. 
+Given sequencing data from HOP, the user can identify CHIP calls, compare with known calls, perform various annotations and create a variety of companion visualizations. 
 
 ## Getting Started 
 
@@ -26,7 +26,7 @@ Files involved:
 * scripts/readcount2freq_230518.py 
 
 #### Running Workflow
-1- Place your sorted bam files and corresponding index files (*.sorted.bam and *.sorted.bam.bai) in their own directory. (ex. bams)
+1- Place your sorted indexed bam files (*.sorted.bam and *.sorted.bam.bai) in their own directory. 
 
 2- Edit config_bams.json accordingly and change paths as needed.
 
@@ -46,13 +46,15 @@ sbatch AnalyzeBams.sh config/config_bams.json
 All output files generated for each input will be located in the results folder indicated by config_bams.json. 
 
 Resulting final dataframe will be located in the master directory with the name following the format: 
+
+
 "{Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ}"
 
 ### Part 2: Annotating Counts and Analyzing Calls 
 #### Summary
 This script will take as input the resulting dataframe from Part 1 and generate a new dataframe with added annotations from various sources (ex. known calls, dbsnp, metadata). 
 
-The annotated dataframe will be used to create multiple visualizations specifically for calls that match the provided known calls. 
+The annotated dataframe will be used to create multiple visualizations specifically for mutation calls that match the provided known calls. 
 
 Files Involved: 
 * {Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ} (from Part 1)
@@ -109,6 +111,7 @@ If your file is annotated, and you are missing the dict, you can create a .txt f
 ```
 
  Resulting output will be your annotated file (if you started with the file produced from Part 1), and all visualizations generated will be in their respective matched calls subdirectories in your given plot directory. 
+ An example of the visualizations you will see per subdirectory is in figs/beataml of this repo. 
 
 
 ### Part 2a: Creating Custom Calls
@@ -150,7 +153,5 @@ Resulting output is a *_reformatted.txt that will be in your specified output di
 
 ## Additional Notes 
 When using multiple list of calls, choose names that start with a different letter. The created annotation dataframe saves the first letter of the name if there is a match, so this will prevent any confusion. 
+A good example: custom, beataml, watson . Not good : custom, calls, california
 
-To run AnalyzeBams.sh, it would be better to also have your own version of annovar tools and human genome fasta file from Ensembl. The config_bams.json file points to mine by default. 
-
-Any questions? Please email me (chaoe@ohsu.edu)
