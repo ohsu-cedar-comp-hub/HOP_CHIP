@@ -1,0 +1,13 @@
+executor: cluster-generic
+cluster-generic-submit-cmd:
+  sbatch
+    --partition=exacloud
+    --cpus-per-task=1
+    --mem=4G
+    --job-name=smk-{rule}-{wildcards}
+    --output=logs/{rule}/{rule}-{wildcards}-%j.out
+    --time=10:59:59
+    --parsable
+jobs: 100
+rerun-incomplete: True
+use-conda: True

@@ -1,0 +1,19 @@
+{ 
+    "master_dir" : "/home/groups/CEDAR/chaoe/HOP_test", 
+    "ref" : "/home/groups/CEDAR/chaoe/HOP_test/ref_files/hg19_cleaned_upper.fa", 
+    "bams": "/home/groups/CEDAR/chaoe/HOP_test/bams", 
+    "results": "/home/groups/CEDAR/chaoe/HOP_test/results", 
+    "regions": "/home/groups/CEDAR/chaoe/HOP_test/22KD-115F0022-1_50X_genomecvg_merged.bed", 
+    "max_depth": 10000000, 
+    "readcount2freq" : "/home/groups/CEDAR/chaoe/HOP_test/scripts/readcount2freq_230518.py", 
+    "min_cov": 50, 
+    "min_vaf": 0.002, 
+    "max_vaf": 0.45, 
+    "min_depth": 50, 
+    "min_supp_reads": 5, 
+    "minBQ": 30, 
+    "freq2bed": "/home/groups/CEDAR/chaoe/HOP_test/scripts/freq2bed_230518.py", 
+    "annovar": "/home/groups/CEDAR/chaoe/HOP_test/tools/annovar", 
+    "annotate_final": "/home/groups/CEDAR/chaoe/HOP_test/scripts/annotate_bed_with_annovar_output_230921.py", 
+    "build": "hg19"
+}

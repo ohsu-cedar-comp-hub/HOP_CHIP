@@ -1,0 +1,14 @@
+{
+    "infile" : "/home/groups/CEDAR/chaoe/HOP_test/HOP_first_500_patients_merged_230921.annotated_readcounts.filtered_0.2-45percent_BQ30_nonsynon_5supreads", 
+    "calls" : ["watson=/home/groups/CEDAR/chaoe/HOP_test/CHIP_sites_from_Watson_etal_Blundell_lab.txt", 
+                "beataml=/home/groups/CEDAR/chaoe/HOP_test/CHIP_sites_from_BeatAML.txt"],
+    "annot" : null, 
+    "metadata" : "/home/groups/CEDAR/chaoe/HOP_test/HOP_first_500_metadata.csv", 
+    "dbsnp" : "/home/groups/CEDAR/chaoe/HOP_test/dbsnp_22KD-115F0022-1_50X_intersect.bed", 
+    "plt" :  "/home/groups/CEDAR/chaoe/HOP_test/figs", 
+    "ver" : null, 
+    "minvaf": null , 
+    "maxvaf": null , 
+    "mincount": null, 
+    "dict" : null
+}
