@@ -6,7 +6,7 @@ Given sequencing data from HOP, the user can identify CHIP calls, compare with k
 
 ```bash 
 git clone https://github.com/ohsu-cedar-comp-hub/HOP_CHIP.git
-conda env create -f HOP.yaml --n HOP 
+conda env create -f HOP.yaml ß 
 conda activate HOP
 ```
 
@@ -52,7 +52,11 @@ Resulting final dataframe will be located in the master directory with the name 
 
 ### Part 2: Annotating Counts and Analyzing Calls 
 #### Summary
-This script will take as input the resulting dataframe from Part 1 and generate a new dataframe with added annotations from various sources (ex. known calls, dbsnp, metadata). 
+This script can be used in 2 ways: 
+
+1= Directly from Part 1 by using the resulting dataframe as input and then generating a new dataframe with added annotations from various sources (ex. known calls, dbsnp, metadata). 
+
+2- Using an already annotated dataframe and a dictionary containing the lists of known calls as inputs. 
 
 The annotated dataframe will be used to create multiple visualizations specifically for mutation calls that match the provided known calls. 
 
@@ -93,13 +97,13 @@ options:
 additional information: If you are starting with a file produced from Snakemake, --infile, --metadata, --calls, --dbsnp and --plt are required. Any that you don't
 fill in will be filled in by default with config file. If you have an annotated file already, --annot, --dict and --plt are required.
 ```
-For example, if you are using the final file directly from Part 1 and you want to use your own paths to annotation files: 
+If you are using the resulting file directly from Part 1 and you want to use your own paths to annotation files, an example would be:  
 
 ```bash 
 python -u AnalyzeMutCalls.py -i {Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ} -m HOP_first_500_metadata.csv -d dbsnp_22KD-115F0022-1_50X_intersect.bed -p /home/groups/CEDAR/chaoe/HOP_test/figs --calls watson=/home/groups/CEDAR/chaoe/HOP_test/calls/CHIP_sites_from_Watson_etal_Blundell_lab.txt beataml=/home/groups/CEDAR/chaoe/HOP_test/calls/CHIP_sites_from_BeatAML.txt
 ```
 
-If you are using a previously annotated file, and just want the visualizations, an example could look like:  
+If you are using a previously annotated file and a corresponding dictionary, and just want the visualizations, an example could look like:  
 
 ```bash
 python -u AnalyzeMutCalls.py -a HOP_merged_v1_240909.annotated_readcounts_crossref.csv --dict HOP_merged_v1_240909.callsdict.txt -p /home/groups/CEDAR/chaoe/HOP_test/figs
@@ -109,8 +113,9 @@ If your file is annotated, and you are missing the dict, you can create a .txt f
 ```
 {'b':'beataml', 'c':'custom'}
 ```
+NOTE: Because there are many parameters, you could also modify config_annot.json as an alternative to specifying parameters in the command line. 
 
- Resulting output will be your annotated file (if you started with the file produced from Part 1), and all visualizations generated will be in their respective matched calls subdirectories in your given plot directory. 
+ All visualizations generated will be in their respective matched calls' subdirectories in your given plot directory. 
  An example of the visualizations you will see per subdirectory is in figs/beataml of this repo. 
 
 
@@ -150,8 +155,9 @@ python -u ConvertCalls.py -i testcalls.freq.annovar_file -o /home/groups/CEDAR/c
 ```
 
 Resulting output is a *_reformatted.txt that will be in your specified output directory. 
+This fule can be added to the AnalyzeMutCalls.py as part of the --calls parameter. 
 
 ## Additional Notes 
 When using multiple list of calls, choose names that start with a different letter. The created annotation dataframe saves the first letter of the name if there is a match, so this will prevent any confusion. 
-A good example: custom, beataml, watson . Not good : custom, calls, california
+Good example: custom, beataml, watson . Bad example: custom, calls, california
 
