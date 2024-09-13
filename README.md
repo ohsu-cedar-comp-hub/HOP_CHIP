@@ -16,6 +16,15 @@ conda activate HOP
 This workflow will take your sorted indexed bams and for each, will perform read counts, calculate VAFs, filter and perform gene annotations via annovar. 
 After, your results will be merged into a single dataframe for convenience and for downstream analysis. 
 
+Tools needed: 
+* Annovar (https://annovar.openbioinformatics.org/en/latest/user-guide/download/)
+* bam read-count 
+
+```bash 
+conda install bioconda::bam-readcount
+```
+
+
 Files involved: 
 * Snakemake 
 * config/config_bams.json  
@@ -54,7 +63,7 @@ Resulting final dataframe will be located in the master directory with the name 
 #### Summary
 This script can be used in 2 ways: 
 
-1= Directly from Part 1 by using the resulting dataframe as input and then generating a new dataframe with added annotations from various sources (ex. known calls, dbsnp, metadata). 
+1- Directly from Part 1 by using the resulting dataframe as input and then generating a new dataframe with added annotations from various sources (ex. known calls, dbsnp, metadata). 
 
 2- Using an already annotated dataframe and a dictionary containing the lists of known calls as inputs. 
 
@@ -115,8 +124,8 @@ If your file is annotated, and you are missing the dict, you can create a .txt f
 ```
 NOTE: Because there are many parameters, you could also modify config_annot.json as an alternative to specifying parameters in the command line. 
 
- All visualizations generated will be in their respective matched calls' subdirectories in your given plot directory. 
- An example of the visualizations you will see per subdirectory is in figs/beataml of this repo. 
+All visualizations generated will be in their respective matched calls' subdirectories in your given plot directory. 
+An example of the visualizations you will see per subdirectory is in figs/beataml of this repo. 
 
 
 ### Part 2a: Creating Custom Calls
@@ -155,9 +164,9 @@ python -u ConvertCalls.py -i testcalls.freq.annovar_file -o /home/groups/CEDAR/c
 ```
 
 Resulting output is a *_reformatted.txt that will be in your specified output directory. 
-This fule can be added to the AnalyzeMutCalls.py as part of the --calls parameter. 
+This file can be added to the AnalyzeMutCalls.py as part of the --calls parameter. 
 
 ## Additional Notes 
-When using multiple list of calls, choose names that start with a different letter. The created annotation dataframe saves the first letter of the name if there is a match, so this will prevent any confusion. 
+You can enter in any number of list of calls for AnalyzeMutCalls.py. But, when using multiple list of calls, choose names that start with a different letter. The created annotation dataframe saves the first letter of the name if there is a match, so this will prevent any confusion. 
 Good example: custom, beataml, watson . Bad example: custom, calls, california
 
