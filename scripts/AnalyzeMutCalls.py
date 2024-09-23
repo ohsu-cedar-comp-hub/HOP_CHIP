@@ -464,6 +464,7 @@ def main():
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
 
+
         # Plot VAF dist
         y_data = obj['vafs']
         x_data = obj['libs']
@@ -808,8 +809,44 @@ def main():
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
 
-        print("All plots generated for", k )
-     
+        # Plot distribution of ages across libraries 
+        age_counts = Counter(obj['ages'])
+        x_data = list(age_counts.keys())
+        y_data = list(age_counts.values())
+        fig = plt.figure(figsize =(10, 5))
+        ax = fig.add_axes([0, 0, 1, 1])
+        bars = plt.bar(x_data, y_data, color='pink')
+        plt.title(f'Distribution of Ages Across Libraries ({len(obj['libs'])} Libraries)' )
+        plt.xlabel('Ages')
+        plt.ylabel('Number of Libraries')
+        ax.set_xticks(unique(x_data))
+        ax.set_xticklabels(obj['labs_w_vafs'])
+        ax.bar_label(bars)
+        file_path = os.path.join(path,'_AgeDistAcrossLibs')
+        plt.savefig(file_path, bbox_inches = 'tight')
+        plt.close()
+
+
+        # Plot distribution of call cts across libraries 
+
+        calls = Counter(obj['call_counts'])
+        x_data = list(calls.keys())
+        y_data = list(calls.values())
+        fig = plt.figure(figsize =(10, 5))
+        ax = fig.add_axes([0, 0, 1, 1])
+        bars = plt.bar(x_data, y_data, color='pink')
+        plt.title(f'Distribution of Calls Across Libraries ({len(obj['libs'])} Libraries)' )
+        plt.xlabel('Calls')
+        plt.ylabel('Number of Libraries')
+
+        ax.bar_label(bars)
+        file_path = os.path.join(path,'_CtDistAcrossLibs')
+        plt.savefig(file_path, bbox_inches = 'tight')
+        plt.close()
+
+        print("Plots generated for", k)
+
+
 
 
 
