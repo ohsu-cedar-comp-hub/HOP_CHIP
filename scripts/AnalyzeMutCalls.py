@@ -226,6 +226,11 @@ def get_by_gene(calls):
     mean_depth = genes_means.depth.to_list()
     mean_vaf = genes_means.vaf.to_list()
 
+    uniq_variants = calls.groupby('gene').agg({'func': 'nunique', 'library' : 'nunique'})
+    condlist = [uniq_variants['library'].lt(10), (uniq_variants['library'].gt(9)&uniq_variants['library'].lt(100))]
+    choicelist = ['<10', '10 - 100']
+    uniq_variants['# of Libraries'] = np.select(condlist, choicelist, '>100')
+
     genes = []
     call_counts = []
     vafs = []
@@ -241,7 +246,7 @@ def get_by_gene(calls):
         call_counts.append(len(vafs_list))
 
     return {'mdn_depths' : mdn_depths, 'mean_depth' : mean_depth, 'mdn_vafs' : mdn_vafs, 
-            'mean_vaf': mean_vaf, 'ages': ages, 'vafs': vafs, 'genes': genes, 'cts':call_counts}
+            'mean_vaf': mean_vaf, 'ages': ages, 'vafs': vafs, 'genes': genes, 'cts':call_counts, 'uniq_variants': uniq_variants}
 
 
 
@@ -679,6 +684,23 @@ def main():
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
 
+        # Plot median depth by gene
+        y_data = by_gene['mdn_depths']
+        x_data = by_gene['genes']
+        fig = plt.figure(figsize =(8, 5))
+        ax = fig.add_axes([0, 0, 1, 1])
+        bp = ax.bar(x_data, y_data, width=0.8)
+        plt.title('Median Depth of each Gene')
+        plt.ylabel('Median Depth')
+        plt.xlabel('Gene')
+        plt.margins(x=0)
+        ax.set_xticks(range(len(x_data)))
+        ax.set_xticklabels(x_data, rotation=45, ha = 'right')
+        file_path = os.path.join(path, 'by_gene/_MedianDepth')
+        plt.savefig(file_path, bbox_inches = 'tight')
+        plt.close()
+
+
        # Plot call counts by Gene
         y_data = by_gene['cts']
         x_data = by_gene['genes']
@@ -729,6 +751,24 @@ def main():
         plt.close()
 
 
+
+        # Plot # of unique variants by gene across libraries 
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_axes([0, 0, 1, 1]) 
+        pal = sns.color_palette("Set2", by_gene['uniq_variants']['# of Libraries'].nunique())
+        bar = sns.barplot(data=by_gene['uniq_variants'], x='gene', y='func', hue='# of Libraries', hue_order = set(by_gene['uniq_variants']['# of Libraries']), palette = pal)
+        plt.title(f'# of Unique Variants by Gene Across Libraries ({len(obj['libs'])} Libraries)')
+        plt.xlabel('Gene', fontsize=14)
+        plt.ylabel('Count')
+        plt.xticks(rotation=45)
+        for container in bar.containers:
+            ax.bar_label(container)
+        file_path = os.path.join(path,'by_gene/_NumUniqueVariantsAcrossLibs')
+        plt.savefig(file_path, bbox_inches = 'tight')
+        plt.close()
+
+
+
 # Plot all vafs by depth (scatter) color coded by gene ID
         y_data = [item for sublist in obj['vafs']for item in sublist]
         x_data = [item for sublist in obj['depths'] for item in sublist]
@@ -750,7 +790,7 @@ def main():
 
         # Plot call counts by mean depth (scatter)
         y_data = obj['call_counts']
-        x_data = mds['unfil_depths']
+        x_data = means['unfil_depths']
         corr, _ = pearsonr(y_data, x_data)
         print(k + ' - Pearsons correlation: %.3f' % corr)
 
@@ -779,9 +819,26 @@ def main():
         plt.ylabel('Median VAF')
         plt.xlabel('Median Depth')
         plt.yscale('log')
+        file_path = os.path.join(path, '_MedianVafsbyMedianDepth')
+        plt.savefig(file_path, bbox_inches = 'tight')
+        plt.close()
+
+
+         # Plot median vafs by median depth (scatter)
+        y_data = means['vafs']
+        x_data = means['depths']
+        fig = plt.figure(figsize =(15, 5))
+        ax = fig.add_axes([0, 0, 1, 1])
+        bp = ax.scatter(x_data, y_data)
+        plt.title('Mean Depth vs Median VAF')
+        plt.ylabel('Mean VAF')
+        plt.xlabel('Mean Depth')
+        plt.yscale('log')
         file_path = os.path.join(path, '_MeanVafsbyMeanDepth')
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
+
+
 
 
         # Plot Distribution of Supporting Reads for all Mutations
@@ -843,6 +900,7 @@ def main():
         file_path = os.path.join(path,'_CtDistAcrossLibs')
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
+        
 
         print("Plots generated for", k)
 
