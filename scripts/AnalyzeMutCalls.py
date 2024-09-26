@@ -245,8 +245,19 @@ def get_by_gene(calls):
         genes.append(gene)
         call_counts.append(len(vafs_list))
 
+    cts_by_gene = pd.DataFrame(list(zip(genes, call_counts)), columns = ['gene', 'call_counts'])
+
+    cts_by_gene.index = cts_by_gene['gene']
+
+    lib_ct_info = cts_by_gene.join(uniq_variants)
+
+    col_order = ['<10', '10 - 100', '>100']
+    if len(set(lib_ct_info['# of Libraries'])) < 3 : 
+        col_order = col_order[0:len(set(lib_ct_info['# of Libraries']))]
+
+
     return {'mdn_depths' : mdn_depths, 'mean_depth' : mean_depth, 'mdn_vafs' : mdn_vafs, 
-            'mean_vaf': mean_vaf, 'ages': ages, 'vafs': vafs, 'genes': genes, 'cts':call_counts, 'uniq_variants': uniq_variants}
+            'mean_vaf': mean_vaf, 'ages': ages, 'vafs': vafs, 'genes': genes, 'cts':call_counts, 'lib_ct_info': lib_ct_info, 'col_order' : col_order}
 
 
 
@@ -669,50 +680,45 @@ def main():
 
     
         # Plot mean depth by gene
-        y_data = by_gene['mean_depth']
-        x_data = by_gene['genes']
-        fig = plt.figure(figsize =(8, 5))
-        ax = fig.add_axes([0, 0, 1, 1])
-        bp = ax.bar(x_data, y_data, width=0.8)
-        plt.title('Mean Depth of each Gene')
-        plt.ylabel('Mean Depth')
-        plt.xlabel('Gene')
-        plt.margins(x=0)
-        ax.set_xticks(range(len(x_data)))
-        ax.set_xticklabels(x_data, rotation=45, ha = 'right')
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_axes([0, 0, 1, 1]) 
+        bar = sns.barplot(x = by_gene['genes'], y = by_gene['mean_depth'], color = 'lightskyblue')
+        plt.title(f'Mean Depth of each Gene')
+        plt.xlabel('Gene', fontsize=14)
+        plt.ylabel('Count')
+        plt.xticks(rotation=45)
+        for container in bar.containers:
+            ax.bar_label(container)
         file_path = os.path.join(path, 'by_gene/_MeanDepth')
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
 
         # Plot median depth by gene
-        y_data = by_gene['mdn_depths']
-        x_data = by_gene['genes']
-        fig = plt.figure(figsize =(8, 5))
-        ax = fig.add_axes([0, 0, 1, 1])
-        bp = ax.bar(x_data, y_data, width=0.8)
-        plt.title('Median Depth of each Gene')
-        plt.ylabel('Median Depth')
-        plt.xlabel('Gene')
-        plt.margins(x=0)
-        ax.set_xticks(range(len(x_data)))
-        ax.set_xticklabels(x_data, rotation=45, ha = 'right')
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_axes([0, 0, 1, 1]) 
+        bar = sns.barplot(x = by_gene['genes'], y = by_gene['mdn_depths'], color = 'lightskyblue')
+        plt.title(f'Median Depth of each Gene')
+        plt.xlabel('Gene', fontsize=14)
+        plt.ylabel('Count')
+        plt.xticks(rotation=45)
+        for container in bar.containers:
+            ax.bar_label(container)
         file_path = os.path.join(path, 'by_gene/_MedianDepth')
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
 
 
        # Plot call counts by Gene
-        y_data = by_gene['cts']
-        x_data = by_gene['genes']
-        fig = plt.figure(figsize =(8, 5))
-        ax = fig.add_axes([0, 0, 1, 1])
-        bp = ax.bar(x_data, y_data, width=0.8)
-        plt.title('Call Count of each Gene')
-        plt.ylabel('Call Count')
-        plt.xlabel('Gene')
-        plt.margins(x=0)
-        ax.set_xticks(range(len(x_data)))
-        ax.set_xticklabels(x_data, rotation=45, ha = 'right')
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_axes([0, 0, 1, 1]) 
+        pal = sns.color_palette("Set2", by_gene['lib_ct_info']['# of Libraries'].nunique())
+        bar = sns.barplot(data=by_gene['lib_ct_info'], x='gene', y='call_counts', hue='# of Libraries', hue_order = by_gene['col_order'], palette = pal)
+        plt.title(f'Call Counts by Gene Across Libraries ({len(obj['libs'])} Libraries)')
+        plt.xlabel('Gene', fontsize=14)
+        plt.ylabel('Count')
+        plt.xticks(rotation=45)
+        for container in bar.containers:
+            ax.bar_label(container)
         file_path = os.path.join(path, 'by_gene/_CallCts')
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
@@ -755,15 +761,15 @@ def main():
         # Plot # of unique variants by gene across libraries 
         fig = plt.figure(figsize=(10, 6))
         ax = fig.add_axes([0, 0, 1, 1]) 
-        pal = sns.color_palette("Set2", by_gene['uniq_variants']['# of Libraries'].nunique())
-        bar = sns.barplot(data=by_gene['uniq_variants'], x='gene', y='func', hue='# of Libraries', hue_order = set(by_gene['uniq_variants']['# of Libraries']), palette = pal)
+        pal = sns.color_palette("Set2", by_gene['lib_ct_info']['# of Libraries'].nunique())
+        bar = sns.barplot(data=by_gene['lib_ct_info'], x='gene', y='func', hue='# of Libraries', hue_order = by_gene['col_order'], palette = pal)
         plt.title(f'# of Unique Variants by Gene Across Libraries ({len(obj['libs'])} Libraries)')
         plt.xlabel('Gene', fontsize=14)
         plt.ylabel('Count')
         plt.xticks(rotation=45)
         for container in bar.containers:
             ax.bar_label(container)
-        file_path = os.path.join(path,'by_gene/_NumUniqueVariantsAcrossLibs')
+        file_path = os.path.join(path,'by_gene/_NumUniqueVariants')
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
 
