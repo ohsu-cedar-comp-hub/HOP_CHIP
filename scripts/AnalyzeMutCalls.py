@@ -723,6 +723,50 @@ def main():
         plt.savefig(file_path, bbox_inches = 'tight')
         plt.close()
 
+
+        # Combined plot of call counts and unique counts 
+        fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(14, 8), sharey=True) 
+        pal = sns.color_palette("Set2", by_gene['lib_ct_info']['# of Libraries'].nunique())
+        bars2 = sns.barplot(data=by_gene['lib_ct_info'], y='gene', x='call_counts', hue='# of Libraries', 
+                        hue_order=by_gene['col_order'], orient='horizontal', 
+                            palette=pal, ax=ax2)
+
+
+        ax2.yaxis.set_label_position('right')
+        ax2.tick_params(axis='y', labelright=True, right = True, labelleft = False, left = False)
+        ax2.set_title('  '+'All Calls', loc='left')
+        ax2.legend_.remove()
+
+        for container in bars2.containers:
+            ax2.bar_label(container)
+
+        bars1 = sns.barplot(data=by_gene['lib_ct_info'], y='gene', x='func', hue='# of Libraries', 
+                        hue_order=by_gene['col_order'], orient='horizontal', 
+                            palette=pal, ax=ax1)
+
+
+        xmax = max(ax1.get_xlim()[1], ax2.get_xlim()[1])
+        ax1.set_xlim(xmax=xmax)
+        ax2.set_xlim(xmax=xmax)
+
+        ax1.invert_xaxis()  # reverse the direction
+
+        for container in bars1.containers:
+            ax1.bar_label(container, padding = 3)
+        ax1.tick_params(labelleft=False, left=False)
+        ax1.set_ylabel('')
+        ax1.set_xlabel('')
+        ax2.set_xlabel('')
+        ax1.set_title('Unique Calls'+'  ', loc='right')
+
+        plt.tight_layout()
+
+        file_path = os.path.join(path, 'by_gene/_CallCts_UniqueCallsCombined')
+        plt.savefig(file_path, bbox_inches = 'tight')
+        plt.close()
+        
+
+
         # Plot VAF dist
         y_data = by_gene['vafs']
         x_data = by_gene['genes']
