@@ -37,6 +37,8 @@ If you have your files handy, place them in their own directory labelled appropr
 If you have your files in Ceph, you will need to access them using your AWS profile. You will need to specify where you want your data to be stored and what your AWS profile is when running the launch script. Refer to Step 5. 
 
 2- Edit config/config_bams.json accordingly and change paths as needed. 
+NOTE: Change addl_db accordingly if you do not have additional databases you want annovar to annotate with. If you want more information about this go here: https://annovar.openbioinformatics.org/en/latest/user-guide/download/#additional-databases
+
 
 3- Edit config/config.v8+.yaml to change cluster configuration settings. 
 
