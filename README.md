@@ -65,7 +65,7 @@ merged_final.csv,
 to{maxvaf} _ {#suppreads}supp_BQ{minBQ}
 
 
-NOTE: These outputs only apply if you specified clean=False in the config/config.json. 
+NOTE: These outputs only apply if you specified clean=False in the config/config_bams.json. 
 If you had chosen to set clean=True, you can then specify the rules in kept_rules whose outputs you want to keep. This will be entirely based on what you need the workflow for. 
 
 
