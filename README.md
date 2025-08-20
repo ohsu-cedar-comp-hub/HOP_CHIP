@@ -6,7 +6,7 @@ Given sequencing data from HOP, the user can identify CHIP calls, compare with k
 
 ```bash 
 git clone https://github.com/ohsu-cedar-comp-hub/HOP_CHIP.git
-conda env create -f HOP.yaml ß 
+conda env create -f HOP.yaml 
 conda activate HOP
 ```
 
@@ -16,48 +16,63 @@ conda activate HOP
 This workflow will take your sorted indexed bams and for each, will perform read counts, calculate VAFs, filter and perform gene annotations via annovar. 
 After, your results will be merged into a single dataframe for convenience and for downstream analysis. 
 
+**Want to know how I developed this workflow?**
+
+Go here for an in-depth guide: https://ohsuitg-my.sharepoint.com/:w:/r/personal/chaoe_ohsu_edu/Documents/Guide%20to%20Snakemake%20CHIP%20Workflow%20-%20Notes.docx?d=we5b5d1e4a231405c906d9cdc572f9541&csf=1&web=1&e=rXWT7v
+
+
+Don't have access? Email me: chaoe@ohsu.edu
+
 Tools needed: 
 * Annovar (https://annovar.openbioinformatics.org/en/latest/user-guide/download/)
-* bam read-count 
 
-```bash 
-conda install bioconda::bam-readcount
-```
-
-
-Files involved: 
-* Snakemake 
-* config/config_bams.json  
-* simple/config.v8+.yaml, 
-* AnalyzeBams.sh,
-* scripts/freq2bed_230518.py,
-* scripts/annotate_bed_with_annovar_output_230921.py
-* scripts/readcount2freq_230518.py 
+This is a Snakemake workflow and will run through calculating readcounts, VAF calculations, filtering,  annotating and merging in a step by step process. 
 
 #### Running Workflow
-1- Place your sorted indexed bam files (*.sorted.bam and *.sorted.bam.bai) in their own directory. 
+To run this workflow, you will need preliminary knowledge of how Snakemake functions. 
+Refer here for a general guide: https://snakemake.readthedocs.io/en/stable/tutorial/basics.html
 
-2- Edit config_bams.json accordingly and change paths as needed.
+1- Start off with sorted indexed bam files (*.sorted.bam and *.sorted.bam.bai).
+If you have your files handy, place them in their own directory labelled appropriately. 
+If you have your files in Ceph, you will need to access them using your AWS profile. You will need to specify where you want your data to be stored and what your AWS profile is when running the launch script. Refer to Step 5. 
 
-3- Edit config.v8+.yaml to change cluster configuration settings. 
+2- Edit config/config_bams.json accordingly and change paths as needed. 
+
+3- Edit config/config.v8+.yaml to change cluster configuration settings. 
 
 4- Perform a dry run on just Snakemake file to ensure no issues. 
 
 ```bash 
-snakemake -n --configfile config/config_bams.json
+snakemake -n --profile simple/ --configfile=config/config_bams.json
 ```
 
-5- Run 
+5- Run workflow via launch script. Only include -d and -p if you need to pull data from Ceph. Refer to Step 1. 
+
 ```bash
-sbatch AnalyzeBams.sh config/config_bams.json 
+sbatch AnalyzeBams.sh -c config/config_bams.json -d data/ -p xyz  
 ```
 
-All output files generated for each input will be located in the results folder indicated by config_bams.json. 
+All output files generated for each input will be located in the results folder indicated by config/config_bams.json. 
 
-Resulting final dataframe will be located in the master directory with the name following the format: 
+All outputs per sample wil be: 
+ *.readcount, *.all_freq, *.metrics, *.#min_d_#percentmin_vaf.freq, *.freq.annovar_file, *.hg19_multianno.txt, *.annotated_readcounts
+
+After merging: 
+merged_final.csv, 
+{rundate}_merged_filt_nonsyn_{minvaf}
+to{maxvaf} _ {#suppreads}supp_BQ{minBQ}
 
 
-"{Today(YYMMMDD)}_merged_filt_nonsyn_{minvaf}to{maxvaf}percent_{minreads}supp_BQ{minBQ}"
+NOTE: These outputs only apply if you specified clean=False in the config/config.json. 
+If you had chosen to set clean=True, you can then specify the rules in kept_rules whose outputs you want to keep. This will be entirely based on what you need the workflow for. 
+
+
+NOTE: I really HIGHLY recommend refering to the in-depth guide to access more information about this workflow. There is a LOT of information in here: 
+
+https://ohsuitg-my.sharepoint.com/:w:/r/personal/chaoe_ohsu_edu/Documents/Guide%20to%20Snakemake%20CHIP%20Workflow%20-%20Notes.docx?d=we5b5d1e4a231405c906d9cdc572f9541&csf=1&web=1&e=rXWT7v
+
+If you need access or have any questions, please email me: chaoe@ohsu.edus
+
 
 ### Part 2: Annotating Counts and Analyzing Calls 
 #### Summary

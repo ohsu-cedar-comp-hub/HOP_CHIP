@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+#SBATCH --time=1:00:00
+#SBATCH --gres=disk:1024 
+#SBATCH --partition=batch
+
+
+srun mkdir-scratch.sh
+SCRATCH_PATH="/mnt/scratch/${SLURM_JOB_ID}"
+# define args
+
+script=""
+min_depth=0
+min_vaf=0
+supp_reads=0
+in=""
+out=""
+metrics=""
+
+# Parse command-line arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --script=*) script="${1#*=}";;
+        --min_depth=*) min_depth="${1#*=}";;
+        --min_vaf=*) min_vaf="${1#*=}";;
+        --supp_reads=*) supp_reads="${1#*=}";;
+        --in=*) in="${1#*=}";; 
+        --metrics=*) metrics="${1#*=}";;
+        --out=*) out="${1#*=}";;
+        *) echo "Unknown parameter: $1"; exit 1;;
+    esac
+    shift
+done
+
+if [[ -z "$script" || -z "$in" || -z "$metrics" || -z "$out"  ]]; then
+    echo "Error: One or more required arguments are missing."
+    exit 1
+fi
+
+
+cp $script $SCRATCH_PATH
+cp $in $SCRATCH_PATH
+cp $metrics $SCRATCH_PATH
+
+
+echo "Performing VAF calcs and preliminary QC:" 
+echo "Script:" $SCRATCH_PATH/$(basename "$script")
+echo "Input:" $SCRATCH_PATH/$(basename "$in")
+echo "Output:" $out
+echo "Metrics:" $metrics
+echo "Min Depth:" $min_depth
+echo "Min VAF:" $min_vaf
+echo "Min Supp Reads:" $supp_reads 
+
+python -u $SCRATCH_PATH/$(basename "$script") $SCRATCH_PATH/$(basename "$in") \
+        --min-cov $min_depth \
+        --min-vaf $min_vaf \
+        --suprds $supp_reads \
+        > $SCRATCH_PATH/$(basename "$out")
+
+num=$(wc -l < "$SCRATCH_PATH/$(basename "$out")")
+
+tmp=$(mktemp)
+
+if [ "$(wc -l < $SCRATCH_PATH/$(basename "$metrics"))" -ge 2 ]; then
+  # replace line 2 with the new character
+  awk -v n="$num" -v d="$(date +"%Y-%m-%d %H:%M:%S")" -v r="$RULE_NAME" 'NR==2{$0=n "\t" d "\t" r} 1' "$SCRATCH_PATH/$(basename "$metrics")" > "$tmp" \
+        && mv "$tmp" "$SCRATCH_PATH/$(basename "$metrics")"
+else
+  echo -e "$num\t$(date +"%Y-%m-%d %H:%M:%S")\t$RULE_NAME"  >>  $SCRATCH_PATH/$(basename "$metrics")
+fi
+
+
+mv $SCRATCH_PATH/$(basename "$out") $(dirname "$out") 
+mv $SCRATCH_PATH/$(basename "$metrics") $(dirname "$out") 
+
+
+srun rmdir-scratch.sh

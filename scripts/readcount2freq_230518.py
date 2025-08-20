@@ -50,7 +50,7 @@ parser.add_argument('--min-vaf',
     action='store',
     type=float,
     help='Minimum VAF to report variant',
-    default=0.0)
+    default=0)
 parser.add_argument('--max-vaf',
     action='store',
     type=float,

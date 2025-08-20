@@ -42,7 +42,7 @@ def main():
         else:
             annovar_fmt_dict = {'CHR': chr, 'start': int(pos), 'stop': int(pos), 'ref': ref, 'alt': alt}
             annovar_fmt_df = pd.concat([annovar_fmt_df,pd.DataFrame([annovar_fmt_dict])], ignore_index=True) 
-    print(annovar_fmt_df)
-    annovar_fmt_df.to_csv('{}.annovar_file'.format(o.infile), mode='w', sep='\t',index=False, header=False)
+    lib = os.path.basename(o.infile).split('_',1)[0]
+    annovar_fmt_df.to_csv(os.path.join(os.path.dirname(o.infile), lib + '.freq.annovar_file'), mode='w', sep='\t',index=False, header=False)
 
 main()

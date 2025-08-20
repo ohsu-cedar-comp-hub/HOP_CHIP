@@ -1,13 +1,19 @@
 executor: cluster-generic
 cluster-generic-submit-cmd:
   sbatch
-    --partition=exacloud
-    --cpus-per-task=1
+    --partition=batch
+    --account=cedar
+    --cpus-per-task={threads}
     --mem=4G
     --job-name=smk-{rule}-{wildcards}
-    --output=logs/{rule}/{rule}-{wildcards}-%j.out
-    --time=10:59:59
+    --output=test_logs/{rule}/{rule}-{wildcards}-%j.out
+    --gres {resources.gres}
     --parsable
-jobs: 100
+    --time={resources.time}
+default-resources:
+  - time="01:00:00"
+  - gres="disk:1024"
+jobs: 40
 rerun-incomplete: True
 use-conda: True
+
