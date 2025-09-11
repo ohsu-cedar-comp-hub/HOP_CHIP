@@ -1,1 +1,0 @@
-/home/groups/CEDAR/boniface/HOP_data/BAM/sorted_bams/CHIP_sites_from_BeatAML.txt
