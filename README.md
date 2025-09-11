@@ -44,37 +44,6 @@ This repository consists of 2 components:
 
 ```
 /home/groups/CEDAR/chaoe/projects/HOP_test/figs/example
-├── _AgeDistAcrossLibs.png
-├── _CellCtsbyMeanDepth.png
-├── _CtDistAcrossLibs.png
-├── _MeanVafsbyMeanDepth.png
-├── _MedianVagsbyMedianDepth.png
-├── _ReadDistMin10.png
-├── _ReadDistMin6.png
-├── _ScatterVafsbyDepth_GeneColored.png
-├── by_age
-│   ├── _CallCts.png
-│   ├── _CallCts2.png
-│   ├── _CallCtsScatter.png
-│   ├── _ChipPos.png
-│   ├── _VafDist.png
-│   ├── _VafDist2.png
-│   ├── _Vafs.png
-│   └── _VafsLog.png
-├── by_gene
-│   ├── _CallCts.png
-│   ├── _CallCts_UniqueCallsCombined.png
-│   ├── _MeanDepth.png
-│   ├── _MedianDepth.png
-│   ├── _NumUniqueVariants.png
-│   ├── _VAFDist.png
-│   └── _VAFDistLOG.png
-└── by_lib
-    ├── _Ages.png
-    ├── _CallCts.png
-    ├── _MeanDepth.png
-    ├── _MedianDepth.png
-    └── _VafDist.png
   ```
 
 <br><br>
@@ -101,7 +70,69 @@ conda activate HOP
 Now, this is what your HOP_CHIP directory should look like: 
 
 ```
-
+.
+├── HOP.yaml
+├── README.md
+├── Snakefile
+├── assets
+│   ├── cluster_config_breakdown.png
+│   ├── config_annot_breakdown.png
+│   └── config_bams_breakdown.png
+├── config
+│   ├── cluster
+│   │   └── config.v8+.yaml
+│   ├── config_annot.json
+│   └── config_bams.json
+├── example
+│   ├── test.sorted.bam
+│   └── test.sorted.bam.bai
+├── figs
+│   └── example
+│       ├── _AgeDistAcrossLibs.png
+│       ├── _CellCtsbyMeanDepth.png
+│       ├── _CtDistAcrossLibs.png
+│       ├── _MeanVafsbyMeanDepth.png
+│       ├── _MedianVagsbyMedianDepth.png
+│       ├── _ReadDistMin10.png
+│       ├── _ReadDistMin6.png
+│       ├── _ScatterVafsbyDepth_GeneColored.png
+│       ├── by_age
+│       │   ├── _CallCts.png
+│       │   ├── _CallCts2.png
+│       │   ├── _CallCtsScatter.png
+│       │   ├── _ChipPos.png
+│       │   ├── _VafDist.png
+│       │   ├── _VafDist2.png
+│       │   ├── _Vafs.png
+│       │   └── _VafsLog.png
+│       ├── by_gene
+│       │   ├── _CallCts.png
+│       │   ├── _CallCts_UniqueCallsCombined.png
+│       │   ├── _MeanDepth.png
+│       │   ├── _MedianDepth.png
+│       │   ├── _NumUniqueVariants.png
+│       │   ├── _VAFDist.png
+│       │   └── _VAFDistLOG.png
+│       └── by_lib
+│           ├── _Ages.png
+│           ├── _CallCts.png
+│           ├── _MeanDepth.png
+│           ├── _MedianDepth.png
+│           └── _VafDist.png
+├── run_pipeline.sh
+└── scripts
+    ├── AnalyzeMutCalls.py
+    ├── ConvertCalls.py
+    ├── add_annotations.sh
+    ├── add_metadata.sh
+    ├── annotate_with_annovar.py
+    ├── calc_freq.sh
+    ├── do_annovar_new.sh
+    ├── filter.sh
+    ├── format_annovar.sh
+    ├── freq2bed_230518.py
+    ├── readcount.sh
+    └── readcount2freq_230518.py
 
 ```
 
