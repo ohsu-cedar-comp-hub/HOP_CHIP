@@ -1,0 +1,21 @@
+{ 
+    "master_dir" : "/home/groups/CEDAR/chaoe/projects/HOP", 
+    "ref" : "/home/groups/CEDAR/chaoe/projects/HOP/ref_files/hg19.fa", 
+    "bams": "/home/groups/CEDAR/chaoe/projects/HOP/pp_results_merged/Deduped", 
+    "results": "/home/groups/CEDAR/chaoe/projects/HOP/vc_results_WES_GeneTrailsregions", 
+    "regions": "/home/groups/CEDAR/chaoe/projects/HOP/genes_from_ss.bed", 
+    "min_map_q": 20, 
+    "min_base_q": 20, 
+    "vep_cache": "/home/groups/CEDAR/chaoe/projects/HOP/tools/vep", 
+    "min_depth": 50, 
+    "min_var_q": 20, 
+    "min_gq": 10, 
+    "max_af": 0.001, 
+    "gnomad_ref": "/home/groups/CEDAR/chaoe/projects/HOP/ref_files/somatic-b37_af-only-gnomad_chrfixed.raw.sites.vcf.gz", 
+    "build": "GRCh37", 
+    "vep_t": 2, 
+    "bcf_call": "/home/groups/CEDAR/chaoe/projects/HOP/scripts/call_bcf.sh", 
+    "bcf_filter": "/home/groups/CEDAR/chaoe/projects/HOP/scripts/bcf_filt.sh", 
+    "prefilt_w_gnomad": "/home/groups/CEDAR/chaoe/projects/HOP/scripts/prefilt_gnomad.sh", 
+    "annotate_vep": "/home/groups/CEDAR/chaoe/projects/HOP/scripts/annotate_vep.sh"
+}

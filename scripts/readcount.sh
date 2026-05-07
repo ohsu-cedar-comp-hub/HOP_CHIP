@@ -51,6 +51,17 @@ echo "Input:" $SCRATCH_PATH/$(basename "$in")
 echo "Writing output to:" $out
 echo "Creating and adding to Metrics File:" $metrics
 
+readcounts_dir=$(dirname "$out") 
+metrics_dir=$(dirname "$metrics") 
+
+if [ ! -d "$readcounts_dir" ]; then
+    mkdir -p "$readcounts_dir"
+fi
+
+if [ ! -d "$metrics_dir" ]; then
+    mkdir -p "$metrics_dir"
+fi
+
 
 bam-readcount -d $max_depth \
         -w 1 \
@@ -68,8 +79,6 @@ awk -v lib="$lib" 'BEGIN{ FS = OFS = "\t" } { print lib, $0 }' \
 
 num=$(wc -l < "$SCRATCH_PATH/$(basename "$out")")
 
-
-
 tmp=$(mktemp)
 
 if [ -f "$metrics" ]; then
@@ -81,7 +90,7 @@ else
 fi
 
 
-mv $SCRATCH_PATH/$(basename "$out") $(dirname "$out") 
-mv $SCRATCH_PATH/$(basename "$metrics") $(dirname "$out") 
+mv $SCRATCH_PATH/$(basename "$out") "$readcounts_dir"
+mv $SCRATCH_PATH/$(basename "$metrics") "$metrics_dir"
 
 srun rmdir-scratch.sh

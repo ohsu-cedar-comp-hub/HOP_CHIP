@@ -37,6 +37,18 @@ if [[ -z "$script" || -z "$in" || -z "$metrics" || -z "$out"  ]]; then
     exit 1
 fi
 
+readcounts_dir=$(dirname "$out") 
+metrics_dir=$(dirname "$metrics") 
+
+if [ ! -d "$readcounts_dir" ]; then
+    mkdir -p "$readcounts_dir"
+fi
+
+if [ ! -d "$metrics_dir" ]; then
+    mkdir -p "$metrics_dir"
+fi
+
+
 
 cp $script $SCRATCH_PATH
 cp $in $SCRATCH_PATH
@@ -71,8 +83,8 @@ else
 fi
 
 
-mv $SCRATCH_PATH/$(basename "$out") $(dirname "$out") 
-mv $SCRATCH_PATH/$(basename "$metrics") $(dirname "$out") 
+mv $SCRATCH_PATH/$(basename "$out") "$readcounts_dir"
+mv $SCRATCH_PATH/$(basename "$metrics") "$metrics_dir"
 
 
 srun rmdir-scratch.sh

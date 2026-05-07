@@ -35,10 +35,18 @@ if [[ -z "$in" || -z "$annovar" || -z "$db" || -z "$build" || -z "$outdir" ]]; t
     exit 1
 fi
 
-annovar_dir=$(dirname "$annovar")
+annovarinfo_dir=$(dirname "$annovar")
+
 cp $in $SCRATCH_PATH
-cp $annovar_dir/*.pl $SCRATCH_PATH
+cp $annovarinfo_dir/*.pl $SCRATCH_PATH
 cp -r $db $SCRATCH_PATH
+
+
+
+if [ ! -d "$outdir" ]; then
+    mkdir -p "$outdir"
+fi
+
 
 default_protocol="refGene"
 operations="g"

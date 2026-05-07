@@ -1,0 +1,18 @@
+{ 
+    "master_dir" : "/home/groups/CEDAR/chaoe/projects/HOP", 
+    "fastq_dir" : "/home/groups/CEDAR/chaoe/projects/HOP/add_seq_fqs", 
+    "results_dir" : "/home/groups/CEDAR/chaoe/projects/HOP/pp_results_add", 
+    "fastqc" : "/home/groups/CEDAR/chaoe/projects/HOP/scripts/fastqc.sh",
+    "fastq_screen": "/home/groups/CEDAR/chaoe/projects/HOP/scripts/fastqscreen.sh", 
+    "fastq_screen_config": "/home/groups/CEDAR/tools/FastQ_Screen_Genomes/fastq_screen.conf", 
+    "trim" : "/home/groups/CEDAR/chaoe/projects/HOP/scripts/trim.sh",
+    "r1_adaptor" : "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+    "r2_adaptor" : "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+    "align" : "/home/groups/CEDAR/chaoe/projects/HOP/scripts/align.sh", 
+    "genome": "/home/groups/CEDAR/anno/igenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/bwa2/genome.fa",
+    "check_rg" : "/home/groups/CEDAR/chaoe/projects/HOP/scripts/check_rg.sh", 
+    "add_rg" : "true", 
+    "dedup" : "/home/groups/CEDAR/chaoe/projects/HOP/scripts/deduplicate.sh"
+
+
+}

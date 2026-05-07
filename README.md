@@ -1,4 +1,6 @@
 
+**NOTE:** These workflows are compatible only with snakemake v8 and the correct snakemake cluster executor plugin package. Please check your environment, or use mine via conda env create -f *.yaml
+
 ## Introduction
 <details>
 <summary><b>Overview </b></summary>
@@ -13,7 +15,23 @@ This repository consists of 2 components:
 
 <br>
 
+
+
 **1. Workflow: Analyzing Sequencing Data and Mutation Calling**: 
+
+**NOTE:** I have updated the original mutation calling workflow so there is a newer mutation calling workflow available. Both mutation calling workflows are still accessible and usable. I have also added the preprocessing workflow here, in case you're starting off with raw fastq files. 
+
+
+**Preprocessing Workflow**: 
+
+    Input: Raw paired fastq files 
+    1. Run FASTQC
+    2. Trim adapters (cutadapt)
+    3. Align reads (bwa mem2)
+    4. Check read group information
+    5. Deduplicate (PicardMarkDuplicates) 
+
+**Manual Mutation Calling Workflow**: 
 
     Input: Sorted bams w/ indexes
     1. Calculate read counts (bam-readcount)
@@ -24,10 +42,18 @@ This repository consists of 2 components:
     6. Merge calls across libraries. 
     7. Additional filtering for nonsynonymous, minimum VAF, minimum sequencing depth, minimum # of supporting reads and minimum BQ 
 
-  **NOTE:** If you want to know in detail how this workflow was created, click [here.](https://ohsuitg-my.sharepoint.com/:w:/r/personal/chaoe_ohsu_edu/Documents/Snakemake%20CHIP-HOP%20Workflow.docx?d=we5b5d1e4a231405c906d9cdc572f9541&csf=1&web=1&e=JN4NsA)
+**VEP Mutation Calling Workflow**: 
+
+    Input: Sorted bams w/ indexes 
+    1. Call SNV and indel variants (bcftools) 
+    2. Filter variants by minimum variant quality, read depth and genotype quality (bcftools)
+    3. Annotate variants w/ gnomad and prefilter by max AF (bcftools)
+    4. Annotate variants (vep)
 
 
-  If you do not have access to this document, please email Emily Chao (chaoe@arc.ohsu.edu). 
+  **NOTE:** If you want to know in detail how these workflows were created as well as the full guide on how to run the workflows, please refer to this doc: Snakemake CHIP-HOP Workflow.pdf. 
+
+  If you have additional questions, please email Emily Chao (chaoe@arc.ohsu.edu) and Chris Boniface (boniface@ohsu.edu)
 
   I **HIGHLY** recommend using this document to guide you if you're a first time user. The instructions there are way more in-depth with thorough explanations. 
 
@@ -63,7 +89,8 @@ cd /home/exacloud/gscratch/CEDAR/[user]
 git clone https://github.com/ohsu-cedar-comp-hub/HOP_CHIP.git
 cd HOP_CHIP
 
-conda env create -f HOP.yaml 
+conda env create -f envs/HOP.yaml 
+# and/or create vep_HOP.yaml if running 2nd VC workflow
 conda activate HOP
 ```
 
@@ -136,11 +163,86 @@ Now, this is what your HOP_CHIP directory should look like:
 
 ```
 
-**NOTE:** For the Workflow, you will need to separately obtain annovar due to licensing restrictions. Obtain annovar [here.](https://annovar.openbioinformatics.org/en/latest/user-guide/download/)
+</details>
+
+
+## Running the Preprocessing Workflow 
+<details>
+<summary><b>From the Start</b></summary>
+<br>
+
+1. Input will be **paired fastq files** (ending in *_1.fq.gz and *_2.fastq.gz). 
+
+  - If you have your files handy, place them in their own directory labelled appropriately. 
+  
+  - If you have your files in Ceph, you will need to access them using your AWS profile. You will need to specify where you want your data to be stored and what your AWS profile is when running the launch script. Refer to Step 5 for more details. 
+
+    <br>
+    Want an example for the input? Look in the example directory. 
+<br>
+
+2. Edit **config/config_pp.json** accordingly and change paths as needed. 
+The following are the variables you **must** change: 
+- **master_dir:** absolute path to CHIP_HOP directory
+- **fastq_dir:** absolute path to input data dir
+- **results_dir:** absolute path to desired results dir 
+
+  There are many other variables you will likely want to adjust, please refer to [Config Breakdown For Workflow](#for-workflow) to see an in-depth overview of what each variable means. 
+
+<br>
+
+3. Edit **config/cluster/config.v8+.yaml** to change cluster configuration settings. 
+
+    You can change the variables as needed. Most often, you may want to change where the output logs are going to, how the slurm jobs are named and number of jobs submitted at once. 
+
+    If desired, you can also change the default resources. 
+    You are also able to change the resource requests per rule in the smk file. 
+    Refer to Cluster Config File Breakdown [Cluster Config File Breakdown](#cluster-config-file-breakdown) for more details. 
+
+<br>
+
+4. Perform a Snakemake dry run to confirm that your data will be ran correctly. 
+    ```
+    cd HOP_CHIP
+    configfile=[absolute path to config_pp.json]
+    snakefile=[absolute path to snakefile]
+    clust_profile=[absolute path to config/cluster]
+
+    snakemake -n --configfile=$configfile -s $snakefile --profile=$clust_profile
+    ```
+
+    Pay close attention to the output of this dry run and check that the files Snakemake is expected to generate are correct. 
+
+<br>
+
+5. Now run this workflow using the launch script `run_pipeline.sh`. You will include the parameters `-d` and `-p` if you need to pull data from Ceph. 
+    ```
+    cd HOP_CHIP
+    sbatch run_pipeline.sh -c $configfile -s $snakefile -d [dir you want data to be put in] -p [aws profile] -clust_p $clust_profile -env HOP 
+
+    ```
+
 
 </details>
 
-## Running the Workflow 
+<details>
+<summary><b>Expected Outputs</b></summary>
+<br>
+
+All output files generated for each input will be located in the results folder indicated by config/config_pp.json. 
+
+All outputs per sample wil be: 
+*_1_fastqc.html, *_2_fastqc.html, *_trimmed_1.fq.gz, *_trimmed_2.fq.gz, *.aligned.bam, *.rg_exists.txt, *.sort.bam, *.sort.bam.bai
+
+</details>
+
+
+
+## Running the Original Mutation Calling Workflow 
+
+**NOTE:** For this workflow, you will need to separately obtain annovar due to licensing restrictions. Obtain annovar [here.](https://annovar.openbioinformatics.org/en/latest/user-guide/download/)
+
+
 <details>
 <summary><b>From the Start</b></summary>
 <br>
@@ -155,7 +257,7 @@ Now, this is what your HOP_CHIP directory should look like:
     Want an example for the input? Look in the example directory. 
 <br>
 
-2. Edit **config/config_bams.json** accordingly and change paths as needed. 
+2. Edit **config/config_variantcalling.json** accordingly and change paths as needed. 
 The following are the variables you **must** change: 
 - **master_dir:** absolute path to CHIP_HOP directory
 - **bams:** absolute path to input data dir
@@ -170,8 +272,7 @@ The following are the variables you **must** change:
     You can change the variables as needed. Most often, you may want to change where the output logs are going to, how the slurm jobs are named and number of jobs submitted at once. 
 
     If desired, you can also change the default resources. 
-    You are also able to change the resource requests per rule in the smk file. More details in [another section]. 
-
+    You are also able to change the resource requests per rule in the smk file. 
     Refer to Cluster Config File Breakdown [Cluster Config File Breakdown](#cluster-config-file-breakdown) for more details. 
 
 <br>
@@ -179,10 +280,11 @@ The following are the variables you **must** change:
 4. Perform a Snakemake dry run to confirm that your data will be ran correctly. 
     ```
     cd HOP_CHIP
-    configfile=[absolute path to config_bams.json]
+    configfile=[absolute path to config_variantcalling.json]
     snakefile=[absolute path to snakefile]
+    clust_profile=[absolute path to config/cluster]
 
-    snakemake -n --configfile=$configfile -s $snakefile 
+    snakemake -n --configfile=$configfile -s $snakefile --profile=$clust_profile
     ```
 
     Pay close attention to the output of this dry run and check that the files Snakemake is expected to generate are correct. 
@@ -192,7 +294,7 @@ The following are the variables you **must** change:
 5. Now run this workflow using the launch script `run_pipeline.sh`. You will include the parameters `-d` and `-p` if you need to pull data from Ceph. 
     ```
     cd HOP_CHIP
-    sbatch run_pipeline.sh -c $configfile -s $snakefile -d [dir you want data to be put in] -p [aws profile]
+    sbatch run_pipeline.sh -c $configfile -s $snakefile -d [dir you want data to be put in] -p [aws profile] -clust_p $clust_profile -env HOP 
 
     ```
 
@@ -201,9 +303,9 @@ The following are the variables you **must** change:
 ```
 cd HOP_CHIP
 
-snakemake -n --configfile=$configfile -s $snakefile  --until [last rule to run]
+snakemake -n --configfile=$configfile -s $snakefile  --until [last rule to run] --profile=$clust_profile
 
-sbatch run_pipeline.sh -c $configfile -s $snakefile -u [last rule to run]
+sbatch run_pipeline.sh -c $configfile -s $snakefile -u [last rule to run] -clust_p $clust_profile -env HOP
 
 ```
 
@@ -214,7 +316,7 @@ sbatch run_pipeline.sh -c $configfile -s $snakefile -u [last rule to run]
 <summary><b>Expected Outputs</b></summary>
 <br>
 
-All output files generated for each input will be located in the results folder indicated by config/config_bams.json. 
+All output files generated for each input will be located in the results folder indicated by config/config_variantcalling.json. 
 
 All outputs per sample wil be: 
  *.readcount, *.all_freq, *.metrics, *.#min_d_#percentmin_vaf.freq, *.freq.annovar_file, *.hg19_multianno.txt, *.annotated_readcounts
@@ -231,6 +333,86 @@ to{maxvaf} _ {#suppreads}supp_BQ{minBQ}
 
 
 </details>
+
+## Running the New Mutation Calling Workflow w/ VEP 
+
+<details>
+<summary><b>From the Start</b></summary>
+<br>
+
+1. Input will be **sorted indexed bam files** (ending in *.sorted.bam and *.sorted.bam.bai). 
+
+  - If you have your files handy, place them in their own directory labelled appropriately. 
+  
+  - If you have your files in Ceph, you will need to access them using your AWS profile. You will need to specify where you want your data to be stored and what your AWS profile is when running the launch script. Refer to Step 5 for more details. 
+
+    <br>
+    Want an example for the input? Look in the example directory. 
+<br>
+
+2. Edit **config/vc_vep.json** accordingly and change paths as needed. 
+The following are the variables you **must** change: 
+- **master_dir:** absolute path to CHIP_HOP directory
+- **bams:** absolute path to input data dir
+- **results:** absolute path to desired results dir 
+
+  There are many other variables you will likely want to adjust, please refer to [Config Breakdown For Workflow](#for-workflow) to see an in-depth overview of what each variable means. 
+
+<br>
+
+3. Edit **config/cluster_updated/config.v8+.yaml** to change cluster configuration settings. 
+
+    You can change the variables as needed. Most often, you may want to change where the output logs are going to, how the slurm jobs are named and number of jobs submitted at once. 
+
+    If desired, you can also change the default resources. 
+    You are also able to change the resource requests per rule in the smk file.
+    Refer to Cluster Config File Breakdown [Cluster Config File Breakdown](#cluster-config-file-breakdown) for more details. 
+
+<br>
+
+4. Perform a Snakemake dry run to confirm that your data will be ran correctly. 
+    ```
+    cd HOP_CHIP
+    configfile=[absolute path to config_vc_vep.json]
+    snakefile=[absolute path to snakefile]
+    clust_profile=[absolute path to cluster_updated]
+
+    snakemake -n --configfile=$configfile -s $snakefile --profile=$clust_profile 
+    ```
+
+    Pay close attention to the output of this dry run and check that the files Snakemake is expected to generate are correct. 
+
+<br>
+
+5. Now run this workflow using the launch script `run_pipeline.sh`. You will include the parameters `-d` and `-p` if you need to pull data from Ceph. 
+    ```
+    cd HOP_CHIP
+    sbatch run_pipeline.sh -c $configfile -s $snakefile -d [dir you want data to be put in] -p [aws profile] -clust_p $clust_profile -env vep_HOP
+
+    ```
+
+
+</details>
+
+
+<details>
+<summary><b>Expected Outputs</b></summary>
+<br>
+
+All output files generated for each input will be located in the results folder indicated by config/config_vc_vep.json. 
+
+All outputs per sample wil be: 
+*.raw.vcf.gz, *.raw.vcf.gz.csi, *_VarQ##X_GQ#.vcf.gz, *_VarQ##X_GQ#.vcf.gz.csi, *_MaxAF# _VarQ#
+#X_GQ#.vcf.gz, *_MaxAF# _VarQ#
+#X_GQ#.vcf.gz.csi, *.csq.vcf.gz, *.csq.vcf.gz.csi.
+ 
+
+**NOTE:** The above only applies if you ran the workflow entirely from the beginning. 
+
+
+</details>
+
+
 
 ## Further Analyzing Mutation Calls 
 <details>
@@ -366,9 +548,13 @@ Good example: custom, beataml, watson . Bad example: custom, calls, california
 
 Use this breakdown to help determine which variables you would want to customize: 
 
-### For Workflow
+### For Mutation Calling Manual Workflow
 
-![image.png](assets/config_bams_breakdown.png)
+![image.png](assets/config_variantcalling_bkdown.png)
+
+### For Mutation Calling via VEP Workflow 
+
+![image.png](assets/config_vc_vep_bkdown.png)
 
 ### For Further Analysis
 
@@ -376,5 +562,10 @@ Use this breakdown to help determine which variables you would want to customize
 
 ## Cluster Config File Breakdown 
 
-Use this breakdown to help determine which variables you would want to customize: 
+Use this breakdown to help determine which variables you would want to customize for either preprocessing or manual variant calling: 
 ![image.png](assets/cluster_config_breakdown.png)
+
+
+Else for the updated method using VEP: 
+![image.png](assets/cluster_config_forvep_bkdown.png)
+

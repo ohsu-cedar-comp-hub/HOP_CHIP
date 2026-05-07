@@ -38,13 +38,20 @@ def main():
     print('Input Annovar file:', in_annovar)
     print(f'Outfile: {outdir}/{lib}.annotated_readcounts')
 
+    # reset chr to be # only if it's 'chr#'
     # we are going to join via key CHRPOSALT 
+    exonic_only = exonic_only.copy()
+
+    exonic_only.loc[:, 'Chr'] = exonic_only['Chr'].str.replace(r'^chr([0-9XYM]+)$', r'\1', regex=True)
+
     exonic_only.loc[:, 'CHRPOSALT'] = exonic_only.apply(
         lambda row: f"{row.Chr}:{row.Start}:{row.Alt}" if '-' not in row.Ref 
         else f"{row.Chr}:{row.Start}:+{row.Alt}",
         axis=1
     )
     exonic_only = exonic_only.drop_duplicates(subset='CHRPOSALT', keep='first')
+    
+    calls['chrom'] = calls['chrom'].str.replace(r'^chr([0-9XYM]+)$', r'\1', regex=True)
 
     calls['CHRPOSALT'] = calls.apply(lambda row: str(row.chrom) + ':' + str(row.position) + ':-' if '-' in str(row.base) else str(row.chrom) + ':' + str(row.position) + ':' + str(row.base), axis = 1) 
 
@@ -59,10 +66,14 @@ def main():
 
     combined = combined.rename(columns={'chrom' : 'chr', 'position':'pos', 'base':'alt', 'avg_basequality': 'avg_BQ', 'Gene.refGene':'gene', 
         'AAChange.refGene': 'func'})
+    
+    col_order = ['library','chr','pos','ref','alt', 'depth', 'count', 'vaf', 'avg_BQ', 'avg_pos_as_fraction', 'type', 'class', 'gene', 'func']
 
-    new_order = ['library','chr','pos','ref','alt', 'depth', 'count', 'vaf', 'avg_BQ', 'avg_pos_as_fraction', 'type', 'class', 'gene', 'func', 'cosmic102', 'snp138']
+    new_annotation_cols = [col for col in combined.columns if col not in col_order]
 
-    combined = combined[new_order]
+    col_order.extend(new_annotation_cols)
+
+    combined = combined[col_order]
 
     combined.to_csv(f'{outdir}/{lib}.annotated_readcounts', sep='\t', index=False, header=True) 
 

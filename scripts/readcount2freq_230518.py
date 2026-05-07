@@ -60,7 +60,7 @@ parser.add_argument('--suprds',
     action='store',
     type=int,
     help='Minimum supporting reads to report variant',
-    default=2)
+    default=1)
 parser.add_argument('-v',
     '--verbose',
     action='store_true',
@@ -135,7 +135,7 @@ with open(args.input) as in_fh:
         continue  
       vaf = base_data['count'] / depth
       # Filter on minimum depth and VAF
-      if depth >= args.min_cov and vaf >= args.min_vaf and vaf < args.max_vaf and base_data['count'] >= args.suprds: 
+      if depth >= args.min_cov and vaf >= args.min_vaf and base_data['count'] >= args.suprds: 
         # Output count and VAF data as well as avg_pos_as_fraction
         print('\t'.join(
             str(x) for x in (library, chrom, position, reference_base, base_data['base'],

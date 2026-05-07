@@ -1,36 +1,43 @@
 import os  
 import datetime
 import logging 
+import glob
 
-# 2025-08-04
-# I'm changing the way we do annotations
-# using table_annovar.pl instead b/c much easier to do annotations from multiple databases
-# will need to change add_annotations step too 
 
 bam_folder = config["bams"]
 result_folder = config["results"]
+
 annov_folder = config["annovar"]
 master_folder = config['master_dir']
 kept_rules = config["kept_rules"]
 
 
-FILES = glob_wildcards(os.path.join(bam_folder, "{lib}.sort.bam"))
-NAMES = FILES.lib 
 
-print('BAM files detected : ', NAMES)
+BAM_NAMES = glob.glob(os.path.join(bam_folder, "*.sort.bam"))
+
+# Extract sample names 
+SAMPLE_NAMES = [os.path.basename(f).replace(".sort.bam", "") for f in BAM_NAMES]
+
+# Keep only samples that have both bam and indexed files
+NAMES = [
+    name for name in SAMPLE_NAMES
+    if os.path.exists(os.path.join(bam_folder, f"{name}.sort.bam.bai"))
+]
+
+print('BAM files detected: ', NAMES)
 print('# of BAM files:', len(NAMES))
 
 rule all: 
     input: 
-        read_counts = expand(os.path.join(result_folder, "{lib}.readcount"), lib = NAMES), 
-        w_freq = expand(os.path.join(result_folder, "{lib}.all_freq"), lib = NAMES), 
-        filt = expand(os.path.join(result_folder, "{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq") , lib = NAMES), 
-        for_annov = expand(os.path.join(result_folder, "{lib}.freq.annovar_file"), lib = NAMES),
-        table = expand(os.path.join(result_folder, "{lib}." + str(config["build"]) + "_multianno.txt"), lib = NAMES), 
-        final_annotate = expand(os.path.join(result_folder, "{lib}.annotated_readcounts"), lib = NAMES), 
-        full_merge = os.path.join(result_folder, "merged_final.csv"), 
+        read_counts = expand(os.path.join(result_folder, "ReadCounts_Vafs/{lib}.readcount"), lib = NAMES), 
+        w_freq = expand(os.path.join(result_folder, "ReadCounts_Vafs/{lib}.all_freq"), lib = NAMES), 
+        filt = expand(os.path.join(result_folder, "ReadCounts_Vafs/{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq") , lib = NAMES), 
+        for_annov = expand(os.path.join(result_folder, "Annovar/{lib}.freq.annovar_file"), lib = NAMES),
+        table = expand(os.path.join(result_folder, "Annovar/{lib}." + str(config["build"]) + "_multianno.txt"), lib = NAMES), 
+        final_annotate = expand(os.path.join(result_folder, "Annotated/{lib}.annotated_readcounts"), lib = NAMES), 
+        full_merge = os.path.join(result_folder, "merged_final.tsv"),
         filt_merged = os.path.join(result_folder, datetime.date.today().strftime('%y%m%d') + "_merged_filt_nonsyn_" + str(config["min_vaf"] * 100) + "to" + str(config["max_vaf"] * 100) + "percent_" + str(config["min_supp_reads"]) + "supp_BQ" + str(config["minBQ"])), 
-        metrics = expand(os.path.join(result_folder, "{lib}.metrics"), lib = NAMES)
+        metrics = expand(os.path.join(result_folder, "Metrics/{lib}.metrics"), lib = NAMES)
 
 
 
@@ -38,8 +45,8 @@ rule readcount:
     input: 
         os.path.join(bam_folder, "{lib}.sort.bam")
     output: 
-        read_counts = os.path.join(result_folder, "{lib}.readcount"), 
-        metrics = os.path.join(result_folder, "{lib}.metrics")
+        read_counts = os.path.join(result_folder, "ReadCounts_Vafs/{lib}.readcount"), 
+        metrics = os.path.join(result_folder, "Metrics/{lib}.metrics")
     shell: 
         """
         RULE_NAME={rule} \
@@ -55,20 +62,20 @@ rule readcount:
 
 rule calc_freq: 
     input: 
-        read_counts = os.path.join(result_folder, "{lib}.readcount")
+        read_counts = os.path.join(result_folder, "ReadCounts_Vafs/{lib}.readcount")
     params:
-        metrics = os.path.join(result_folder, "{lib}.metrics")
+        metrics = os.path.join(result_folder, "Metrics/{lib}.metrics")
     output: 
-        w_freq = os.path.join(result_folder, "{lib}.all_freq")
+        w_freq = os.path.join(result_folder, "ReadCounts_Vafs/{lib}.all_freq")
     shell: 
         """
         RULE_NAME={rule} \
         {config[calc_freq]} \
             --script={config[readcount2freq]} \
             --in={input.read_counts} \
-            --min_depth=20 \
-            --min_vaf=0.0001 \
-            --supp_reads=3 \
+            --min_depth={config[min_depth]} \
+            --min_vaf={config[min_vaf]} \
+            --supp_reads={config[min_supp_reads]} \
             --metrics={params.metrics} \
             --out={output.w_freq}
         """
@@ -76,11 +83,11 @@ rule calc_freq:
 
 rule filt: 
     input: 
-        w_freq = os.path.join(result_folder, "{lib}.all_freq")
+        w_freq = os.path.join(result_folder, "ReadCounts_Vafs/{lib}.all_freq")
     params:
-        metrics = os.path.join(result_folder, "{lib}.metrics")
+        metrics = os.path.join(result_folder, "Metrics/{lib}.metrics")
     output: 
-        filt = os.path.join(result_folder, "{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq")  
+        filt = os.path.join(result_folder, "ReadCounts_Vafs/{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq")  
     shell: 
         """
         RULE_NAME={rule} \
@@ -95,9 +102,9 @@ rule filt:
 
 rule format_annov: 
     input: 
-       os.path.join(result_folder, "{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq")   
+       os.path.join(result_folder, "ReadCounts_Vafs/{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq")   
     output: 
-        for_annov = os.path.join(result_folder, "{lib}.freq.annovar_file")
+        for_annov = os.path.join(result_folder, "Annovar/{lib}.freq.annovar_file")
     resources: 
         time ="2:00:00"
     shell: 
@@ -110,12 +117,13 @@ rule format_annov:
 
 rule do_annovar: 
     input: 
-        os.path.join(result_folder, "{lib}.freq.annovar_file")
+        os.path.join(result_folder, "Annovar/{lib}.freq.annovar_file")
     output: 
-        table = os.path.join(result_folder, "{lib}." + str(config["build"]) + "_multianno.txt")
+        table = os.path.join(result_folder, "Annovar/{lib}." + str(config["build"]) + "_multianno.txt")
     params: 
         annovar = os.path.join(annov_folder , "table_annovar.pl") , 
-        db = os.path.join(annov_folder, "humandb")
+        db = os.path.join(annov_folder, "humandb"), 
+        annov_dir = os.path.join(result_folder, "Annovar")
     shell: 
         """
         {config[do_annovar]} \
@@ -124,17 +132,17 @@ rule do_annovar:
             --db={params.db} \
             --addl={config[addl_db]} \
             --build={config[build]} \
-            --outdir={result_folder}
+            --outdir={params.annov_dir}
         """
 
 rule add_annotations: 
     input: 
-        freq_file = os.path.join(result_folder, "{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq"), 
-        table = os.path.join(result_folder, "{lib}." + str(config["build"]) + "_multianno.txt")
+        freq_file = os.path.join(result_folder, "ReadCounts_Vafs/{lib}_" + str(config["min_depth"]) + "min_d_" + str(config['min_vaf'] * 100) + "percentmin_vaf.freq"), 
+        table = os.path.join(result_folder, "Annovar/{lib}." + str(config["build"]) + "_multianno.txt")
     params:
-        metrics = os.path.join(result_folder, "{lib}.metrics")
+        metrics = os.path.join(result_folder, "Metrics/{lib}.metrics")
     output: 
-        final_annotate = os.path.join(result_folder,"{lib}.annotated_readcounts")
+        final_annotate = os.path.join(result_folder,"Annotated/{lib}.annotated_readcounts")
     resources: 
         time ="6:00:00"
     shell: 
@@ -149,17 +157,11 @@ rule add_annotations:
         """
 
 
-#per lib, let's do a enhanced metadata file? 
-# lib name, age, gener
-
-# want to merge the annotate files when all bam files have been processed 
-
-
 rule merge: 
     input: 
-        annot_file = expand(os.path.join(result_folder, "{lib}.annotated_readcounts"), lib = NAMES)
+        annot_file = expand(os.path.join(result_folder, "Annotated/{lib}.annotated_readcounts"), lib = NAMES)
     output: 
-        full_merge = os.path.join(result_folder, "merged_final.csv")
+        full_merge = os.path.join(result_folder, "merged_final.tsv")
     threads: 2
     shell: 
         """
@@ -197,7 +199,7 @@ rule merge:
 
 rule final_filt: 
     input: 
-        all_merged = os.path.join(result_folder, "merged_final.csv") 
+        all_merged = os.path.join(result_folder, "merged_final.tsv") 
     output: 
         filt_merged = os.path.join(result_folder, datetime.date.today().strftime('%y%m%d') + "_merged_filt_nonsyn_" + str(config["min_vaf"] * 100) + "to" + str(config["max_vaf"] * 100) + "percent_" + str(config["min_supp_reads"]) + "supp_BQ" + str(config["minBQ"]))
     threads: 2
@@ -211,7 +213,10 @@ rule final_filt:
 
         sed 's/\t\t/\t/g' $SCRATCH_PATH/$(basename {input.all_merged}) > $SCRATCH_PATH/rm_extra_tabs.csv
         
-        awk -F'\t' '$11 == "nonsynonymous" && $8 >= {config[min_vaf]} && $8 <= {config[max_vaf]} && $9 >= {config[minBQ]} && $7 >= {config[min_supp_reads]}' $SCRATCH_PATH/rm_extra_tabs.csv > $SCRATCH_PATH/output.csv
+        awk -F'\t' '
+        NR==1 {{ print; next }}
+        $11 == "nonsynonymous" && $8 >= {config[min_vaf]} && $8 <= {config[max_vaf]} && $9 >= {config[minBQ]} && $7 >= {config[min_supp_reads]}
+        ' $SCRATCH_PATH/rm_extra_tabs.csv > $SCRATCH_PATH/output.csv
 
         mv $SCRATCH_PATH/output.csv {output.filt_merged}
 

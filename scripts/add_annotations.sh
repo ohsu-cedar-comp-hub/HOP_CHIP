@@ -39,6 +39,28 @@ cp $in $SCRATCH_PATH
 cp $annot $SCRATCH_PATH
 cp $metrics $SCRATCH_PATH
 
+readcounts_dir=$(dirname "$in") 
+annov_dir=$(dirname "$annot") 
+metrics_dir=$(dirname "$metrics")
+annotate_dir=$(dirname "$out")
+
+
+if [ ! -d "$readcounts_dir" ]; then
+    mkdir -p "$readcounts_dir"
+fi
+
+if [ ! -d "$annov_dir" ]; then
+    mkdir -p "$annov_dir"
+fi
+
+if [ ! -d "$metrics_dir" ]; then
+    mkdir -p "$metrics_dir"
+fi
+
+if [ ! -d "$annotate_dir" ]; then
+    mkdir -p "$annotate_dir"
+fi
+
 echo "Adding Annotations:" 
 echo "Using Script:" $SCRATCH_PATH/$(basename "$script")
 echo "Input:" $SCRATCH_PATH/$(basename "$in")
@@ -77,9 +99,8 @@ END {
 ' $SCRATCH_PATH/$(basename "$metrics") > $tmp && mv $tmp $SCRATCH_PATH/$(basename "$metrics")
 
 
-
-mv $SCRATCH_PATH/*.annotated_readcounts $(dirname "$out") 
-mv $SCRATCH_PATH/$(basename "$metrics") $(dirname "$out") 
+mv $SCRATCH_PATH/*.annotated_readcounts "$annotate_dir"
+mv $SCRATCH_PATH/$(basename "$metrics") "$metrics_dir"
 
 
 srun rmdir-scratch.sh

@@ -35,6 +35,18 @@ fi
 cp $in $SCRATCH_PATH 
 cp $metrics $SCRATCH_PATH
 
+readcounts_dir=$(dirname "$out") 
+metrics_dir=$(dirname "$metrics") 
+
+if [ ! -d "$readcounts_dir" ]; then
+    mkdir -p "$readcounts_dir"
+fi
+
+if [ ! -d "$metrics_dir" ]; then
+    mkdir -p "$metrics_dir"
+fi
+
+
 echo "Performing Filtering:"
 echo "Input:" $SCRATCH_PATH/$(basename "$in")
 echo "Min Depth:" $min_depth
@@ -59,7 +71,7 @@ else
 fi
 
 
-mv $SCRATCH_PATH/$(basename "$out") $(dirname "$out")  
-mv $SCRATCH_PATH/$(basename "$metrics") $(dirname "$out") 
+mv $SCRATCH_PATH/$(basename "$out") "$readcounts_dir"
+mv $SCRATCH_PATH/$(basename "$metrics") "$metrics_dir"
 
 srun rmdir-scratch.sh

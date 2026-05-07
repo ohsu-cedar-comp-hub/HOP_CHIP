@@ -35,6 +35,13 @@ lib=$(basename "$in" | cut -d. -f1)
 cp $script $SCRATCH_PATH
 cp $in $SCRATCH_PATH
 
+annov_dir=$(dirname "$out") 
+
+if [ ! -d "$annov_dir" ]; then
+    mkdir -p "$annov_dir"
+fi
+
+
 echo "Formatting to fit Annovar:" 
 echo "Using Script:" $SCRATCH_PATH/$(basename "$script")
 echo "Input:" $SCRATCH_PATH/$(basename "$in")
@@ -42,7 +49,7 @@ echo "Output:" $out
 
 python -u $SCRATCH_PATH/$(basename "$script")  --infile $SCRATCH_PATH/$(basename "$in") 
 
-mv $SCRATCH_PATH/*.freq.annovar_file $(dirname "$out")  
+mv $SCRATCH_PATH/*.freq.annovar_file $out
 
 srun rmdir-scratch.sh
 
